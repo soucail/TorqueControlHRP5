@@ -1,0 +1,17 @@
+What to install for using torque control with HRP5 : 
+
+mc_rtc : https://github.com/mathieu-celerier/mc_rtc.git -> branch: topic/external-force-aware-qp
+RBDyn : https://github.com/mathieu-celerier/RBDyn.git -> branch: RotorInertia
+mc_mujoco : https://github.com/rohanpsingh/mc_mujoco.git
+hrp5p-iob : https://github.com/isri-aist/hrp5p-iob.git -> branch: PosTorqueCtrl-rebase-merge-HRP4CR  
+hrpsys-base: https://github.com/rafaelxero/hrpsys-base.git -> branch: PosTorqueCtrl-rebase
+
+jrl-qp : https://github.com/jrl-umi3218/jrl-qp.git
+mc_hrp5_p :https://github.com/soucail/mc_hrp5_p.git
+
+To run a controller in torque Control : 
+   - MyFirstController : https://github.com/soucail/MyFirstController.git
+   - MyPluginPassivityHumanoid : https://github.com/soucail/MyPluginPassivityHumanoid.git
+
+
+Bonus : tutorial from Thomas Duvinage https://www.notion.so/HRP5P-e2ca131ec1ee42a19afc267a64b30766

@@ -1,0 +1,50 @@
+Rafa's suggestion for the torque control :
+
+For more safe experiments, try to activate joint per joint the torque control
+
+add servo on & power one for some joints
+
+def do_power_on():
+
+    rh_svc.power("RHDY", OpenHRP.RobotHardwareService.SWITCH_ON)
+def do_servo_on():
+
+    rh_svc.servo("RHDY", OpenHRP.RobotHardwareService.SWITCH_ON)
+    
+ Additionally, in hmc2, I had to do some configuration depending on the joints that I would not turn on...
+I had to ignore them completely in the solver, or otherwise the robot was behaving in a way that was undesirable (basically due to the integral term that would try to compensate the error of the joints that are off)
+
+The way to ignore the joints was done in the configuration file MultiContactMotionSolverPluginsHRP5P.conf.in:
+     #- command: ":omit-joints-in-solver RCY RCR RCP RKP RAP RAR LCY LCR LCP LKP LAP LAR WP WR WY HY HP RSC RSP RSR RSY REP RWRY RWRR RWRP LSC LSP LSR LSY LEP LWRY LWRR LWRP LHDY"  # Use only RHDY
+
+When setting that configuration, what I was doing was to call a function in hmc2 in: MultiContactMotionSolver.cpp
+The function was cmd_omit_joints_in_solver (https://github.com/isri-aist/hmc2/blob/a35ee923faa2d3ee2283561cc24f1de1e28cba12/src/MultiContactMotionSolver/MultiContactMotionSolver.cpp#L1288)
+This basically just filled in the array of m_omitted_joints before starting the solver
+
+You can also check what I did there https://github.com/isri-aist/hrpcnoid/blob/master/DRCUserInterfacePlugin/HRP5P/MCMSTestExp.py
+Check at the functions do_power_on, do_servo_on , etc...
+Compare to what it is being done in nocnoid.py , which does servoOn on all the joints at the same time
+
+Then, when starting the solver, I would do as in
+https://github.com/isri-aist/hmc2/blob/a35ee923faa2d3ee2283561cc24f1de1e28cba12/src/MultiContactMotionSolver/MultiContactMotionSolver.cpp#L334-L348
+      if (!m_omitted_joints.empty() || m_omit_floating_base) {
+
+        if (!m_omitted_joints.empty())
+          m_robot_module->mbg = m_robot_module->mbg.fixRevJoints(m_robot_module->mbg, m_omitted_joints);
+        m_robot_module->mb  = m_robot_module->mbg.makeMultiBody(m_robot_module->mb.body(0).name(), m_omit_floating_base);
+        m_robot_module->mbc = rbd::MultiBodyConfig(m_robot_module->mb);
+        m_robot_module->mbc.zero(m_robot_module->mb);
+
+        for (std::string & joint : m_omitted_joints)
+          for (size_t b = 0; b < 6; b++)
+            m_robot_module->_bounds[b].erase(joint);
+
+        if (m_omit_floating_base)
+          m_robot_module->_stance["Root"] = {};
+      }
+
+fixRevJoints basically used a new type of joint that I had defined in RBDyn's Joint.h called Rev_Fixed:
+https://github.com/rafaelxero/RBDyn/blob/83549fb0549ff1e236acb9471b7ce86284f2115b/src/RBDyn/RBDyn/Joint.h#L49
+
+This is basically a fixed joint. If you used Fixed joint, the joint would be locked at 0 deg, and you could not change the relative angle to whatever the current joint angle is
+Rev_Fixed allows to keep that current joint angle

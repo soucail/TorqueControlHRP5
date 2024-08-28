@@ -1,0 +1,9 @@
+State of the art for our Work On HRP5 : 
+
+ - The connection between MC_RTC and the real robot is done, and should work.
+ - All necessary files, controller, plugins are already installed on the session thomas@hrp5p01c on the HRP5 PC
+ - In simulation : 
+ 	- With a fixed floating base : (for JVRC1 but should work also for HRP5)
+ 		we can activate the torque control, without passivity feedback
+ 	- With a normal humanoid robot : 
+ 		even with the passivity feedback, we can't activate the torque control (the robot is explosing). After analysis, we think that the problem comes from the tauOut or the QP. tauIn is following tauOut which is doing high gap. We fixed problems with observators, the problem shouldn't come form here.
